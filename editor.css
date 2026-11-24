@@ -13,6 +13,7 @@ svg { width: 18px; height: 18px; fill: currentColor; display: block; }
 
 /* ---- Top bar ---- */
 .top {
+  position: relative; z-index: 45; /* above the section outlines */
   display: flex; align-items: center; gap: 12px;
   padding: 8px 16px 4px;
   background: #fff;
@@ -53,7 +54,7 @@ svg { width: 18px; height: 18px; fill: currentColor; display: block; }
   display: flex; align-items: center; flex-wrap: wrap; gap: 2px;
   margin: 4px 16px 0; padding: 4px 8px;
   background: #edf2f7; border-radius: 22px;
-  position: sticky; top: 0; z-index: 20;
+  position: sticky; top: 0; z-index: 40;
 }
 .toolbar > button, .toolbar .menu-wrap > button, .color {
   height: 30px; min-width: 30px; padding: 0 6px;

@@ -476,7 +476,7 @@
     if (!selImg) return;
     var r = selImg.getBoundingClientRect();
     imgBar.style.left = Math.max(8, r.left) + 'px';
-    imgBar.style.top = Math.max(8, r.top - 40) + 'px';
+    imgBar.style.top = Math.max(desk.getBoundingClientRect().top + 4, r.top - 40) + 'px';
     box(imgBox, r);
   }
   function selectImage(img) {
@@ -532,6 +532,17 @@
   function showBlockBar(block) {
     hoverBlock = block;
     $('blockName').textContent = block.dataset.block;
+    var tile = block.dataset.block === 'Tile', tiles = block.dataset.block === 'Info tiles';
+    var item = block.dataset.block === 'List item', list = block.dataset.block === 'Numbered list';
+    var addBtn = blockBar.querySelector('[data-block-act="add"]');
+    addBtn.hidden = !(tile || tiles || item || list);
+    addBtn.textContent = item || list ? '＋ Item' : '＋ Tile';
+    addBtn.title = item || list ? 'Add an item' : 'Add a tile';
+    // Tiles sit side by side, so they move left/right.
+    blockBar.querySelector('[data-block-act="up"]').textContent = tile ? '←' : '↑';
+    blockBar.querySelector('[data-block-act="down"]').textContent = tile ? '→' : '↓';
+    blockBar.querySelector('[data-block-act="up"]').title = tile ? 'Move left' : 'Move up';
+    blockBar.querySelector('[data-block-act="down"]').title = tile ? 'Move right' : 'Move down';
     blockBar.hidden = false;
     placeBlockBar();
   }
@@ -573,6 +584,39 @@
     var b = e.target.closest('[data-block-act]'); if (!b || !hoverBlock) return;
     history.commit();
     var el = hoverBlock, act = b.dataset.blockAct;
+    if (act === 'add' && (el.dataset.block === 'List item' || el.dataset.block === 'Numbered list')) {
+      // New item shaped like its neighbours, with placeholder text.
+      var after = el.dataset.block === 'List item' ? el : el.querySelector('[data-list] [data-block="List item"]:last-of-type');
+      var newItem;
+      if (after) {
+        newItem = after.cloneNode(true);
+        var lines = newItem.children[1].children;
+        var isDetail = lines[0] && lines[0].style.fontSize === '12px';
+        var words = isDetail ? ['LABEL', 'Value'] : ['New item', 'A short line about it.'];
+        for (var li = 0; li < lines.length; li++) lines[li].textContent = words[li] || '';
+        after.parentNode.insertBefore(newItem, after.nextSibling);
+      } else {
+        var tb = document.createElement('tbody');
+        tb.innerHTML = B.item('New item', 'A short line about it.');
+        newItem = tb.firstElementChild;
+        el.querySelector('[data-list]').appendChild(newItem);
+      }
+      changed(); placeBlockBar();
+      var ir = document.createRange(); ir.selectNodeContents(newItem.children[1].children[0]);
+      var is = window.getSelection(); doc.focus({ preventScroll: true }); is.removeAllRanges(); is.addRange(ir);
+      return;
+    }
+    if (act === 'add') {
+      var holder = document.createElement('tr');
+      holder.innerHTML = B.tile('LABEL', 'Value');
+      var fresh = holder.firstElementChild;
+      if (el.dataset.block === 'Tile') el.parentNode.insertBefore(fresh, el.nextSibling);
+      else el.querySelector('[data-tiles] tr').appendChild(fresh);
+      changed(); placeBlockBar();
+      var rr = document.createRange(); rr.selectNodeContents(fresh.lastElementChild);
+      var ss = window.getSelection(); doc.focus({ preventScroll: true }); ss.removeAllRanges(); ss.addRange(rr);
+      return;
+    }
     if (act === 'up') { var p = sibling(el, -1); if (p) el.parentNode.insertBefore(el, p); }
     if (act === 'down') { var n = sibling(el, 1); if (n) el.parentNode.insertBefore(n, el); }
     if (act === 'dup') {
