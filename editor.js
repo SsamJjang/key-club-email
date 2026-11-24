@@ -109,6 +109,22 @@
     sel.removeAllRanges(); sel.addRange(savedRange);
     return true;
   }
+  // When focus leaves the email (size box, color picker), the browser hides the
+  // selection. Paint the same range so you can still see what you're changing.
+  function paintSelection() {
+    if (!window.CSS || !CSS.highlights) return;
+    if (document.activeElement !== doc && savedRange && !savedRange.collapsed && doc.contains(savedRange.startContainer)) {
+      CSS.highlights.set('kc-sel', new Highlight(savedRange));
+    } else {
+      CSS.highlights.delete('kc-sel');
+    }
+  }
+  doc.addEventListener('blur', function () { setTimeout(paintSelection, 0); });
+  doc.addEventListener('focus', paintSelection);
+  doc.addEventListener('mousedown', function () {
+    // A fresh click in the text starts a new selection.
+    if (window.CSS && CSS.highlights) CSS.highlights.delete('kc-sel');
+  });
   function selectionEl() {
     if (!savedRange) return null;
     var n = savedRange.startContainer;
@@ -129,8 +145,11 @@
     restoreRange();
     document.execCommand('styleWithCSS', false, true);
     document.execCommand(cmd, false, val == null ? null : val);
+    var sel = window.getSelection();
+    if (sel.rangeCount && doc.contains(sel.anchorNode)) savedRange = sel.getRangeAt(0).cloneRange();
     changed();
     refreshToolbar();
+    paintSelection();
   }
 
   toolbar.querySelectorAll('[data-cmd]').forEach(function (b) {
@@ -163,16 +182,47 @@
     if (window.getSelection().isCollapsed) { toast('Select some text first'); return; }
     document.execCommand('styleWithCSS', false, false);
     document.execCommand('fontSize', false, '7');
+    var made = [];
     doc.querySelectorAll('font[size="7"]').forEach(function (f) {
+      var p = f.parentNode;
+      // Pressing A+ again: reuse the span from last time instead of nesting another.
+      if (p.tagName === 'SPAN' && p.childNodes.length === 1 && p.style.fontSize) {
+        while (f.firstChild) p.insertBefore(f.firstChild, f);
+        p.removeChild(f);
+        p.style.fontSize = px + 'px';
+        made.push(p);
+        return;
+      }
       var s = document.createElement('span');
       s.style.fontSize = px + 'px';
-      s.style.lineHeight = '1.3';
       while (f.firstChild) s.appendChild(f.firstChild);
-      s.querySelectorAll('[style]').forEach(function (c) { c.style.fontSize = ''; });
-      f.parentNode.replaceChild(s, f);
+      p.replaceChild(s, f);
+      made.push(s);
     });
+    made.forEach(function (s) {
+      s.querySelectorAll('[style]').forEach(function (c) { c.style.fontSize = ''; });
+    });
+    // Drop wrapper spans left with nothing but a line-height.
+    doc.querySelectorAll('span').forEach(function (s) {
+      if (made.indexOf(s) > -1) return;
+      var st = (s.getAttribute('style') || '').replace(/line-height:\s*[\d.]+;?/g, '').trim();
+      if (st) return;
+      while (s.firstChild) s.parentNode.insertBefore(s.firstChild, s);
+      s.remove();
+    });
+    // Keep the same text highlighted so you can keep pressing A+ / A−.
+    if (made.length) {
+      var r = document.createRange();
+      var last = made[made.length - 1];
+      r.setStart(made[0], 0);
+      r.setEnd(last, last.childNodes.length);
+      var sel = window.getSelection();
+      sel.removeAllRanges(); sel.addRange(r);
+      savedRange = r.cloneRange();
+    }
     $('fontSize').value = px;
     changed();
+    paintSelection();
   }
   toolbar.querySelectorAll('[data-size]').forEach(function (b) {
     b.addEventListener('click', function () {
