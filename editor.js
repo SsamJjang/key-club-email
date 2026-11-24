@@ -30,6 +30,8 @@
     state.current = key;
     var saved = !fresh && state.docs[key];
     doc.innerHTML = saved ? saved.html : TEMPLATES[key].build();
+    // Older drafts saved the hover/selected outline classes; drop them.
+    doc.querySelectorAll('[class]').forEach(function (el) { el.removeAttribute('class'); });
     subject.value = saved ? saved.subject : TEMPLATES[key].subject;
     $('template').value = key;
     normalize();
@@ -45,7 +47,7 @@
     reset: function () { this.stack = [doc.innerHTML]; this.i = 0; },
     soon: function () {
       var self = this; clearTimeout(this.timer);
-      this.timer = setTimeout(function () { self.commit(); }, 350);
+      this.timer = setTimeout(function () { self.commit(); }, 1000);
     },
     commit: function () {
       clearTimeout(this.timer);
@@ -142,6 +144,7 @@
   });
 
   function exec(cmd, val) {
+    history.commit(); // typing before this is its own undo step
     restoreRange();
     document.execCommand('styleWithCSS', false, true);
     document.execCommand(cmd, false, val == null ? null : val);
@@ -178,6 +181,7 @@
   // Font size in px: let the browser wrap the selection, then swap its <font> for a span.
   function setFontSize(px) {
     px = Math.max(8, Math.min(96, Math.round(px)));
+    history.commit();
     if (!restoreRange()) return;
     if (window.getSelection().isCollapsed) { toast('Select some text first'); return; }
     document.execCommand('styleWithCSS', false, false);
@@ -460,16 +464,24 @@
   });
 
   // Image toolbar
+  // Outlines live outside the email so they never count as an edit (or an undo step).
+  var hoverBox = $('hoverBox'), imgBox = $('imgBox');
+  function box(el, r) {
+    el.style.left = r.left + 'px'; el.style.top = r.top + 'px';
+    el.style.width = r.width + 'px'; el.style.height = r.height + 'px';
+    el.hidden = false;
+  }
   var selImg = null, imgBar = $('imgBar');
   function placeImgBar() {
     if (!selImg) return;
     var r = selImg.getBoundingClientRect();
     imgBar.style.left = Math.max(8, r.left) + 'px';
     imgBar.style.top = Math.max(8, r.top - 40) + 'px';
+    box(imgBox, r);
   }
   function selectImage(img) {
     deselectImage();
-    selImg = img; img.classList.add('sel');
+    selImg = img;
     var locked = !!img.closest('[contenteditable="false"]');
     imgBar.querySelectorAll('[data-img]').forEach(function (b) {
       b.hidden = locked && b.dataset.img !== 'replace';
@@ -478,8 +490,7 @@
     imgBar.hidden = false; placeImgBar();
   }
   function deselectImage() {
-    if (selImg) { selImg.classList.remove('sel'); if (!selImg.className) selImg.removeAttribute('class'); }
-    selImg = null; imgBar.hidden = true;
+    selImg = null; imgBar.hidden = true; imgBox.hidden = true;
   }
   doc.addEventListener('click', function (e) {
     if (e.target.tagName === 'IMG') selectImage(e.target); else deselectImage();
@@ -519,9 +530,7 @@
   // ---------------------------------------------------------------- section hover controls
   var blockBar = $('blockBar'), hoverBlock = null, overBar = false;
   function showBlockBar(block) {
-    if (hoverBlock && hoverBlock !== block) hoverBlock.classList.remove('hover');
     hoverBlock = block;
-    block.classList.add('hover');
     $('blockName').textContent = block.dataset.block;
     blockBar.hidden = false;
     placeBlockBar();
@@ -535,10 +544,10 @@
     if (left + bw > window.innerWidth - 4) left = r.right - bw - 4;
     blockBar.style.left = left + 'px';
     blockBar.style.top = Math.max(r.top, desk.getBoundingClientRect().top + 4) + 'px';
+    box(hoverBox, r);
   }
   function hideBlockBar() {
-    if (hoverBlock) { hoverBlock.classList.remove('hover'); if (!hoverBlock.className) hoverBlock.removeAttribute('class'); }
-    hoverBlock = null; blockBar.hidden = true;
+    hoverBlock = null; blockBar.hidden = true; hoverBox.hidden = true;
   }
   doc.addEventListener('mousemove', function (e) {
     var b = e.target.closest('[data-block]');
@@ -567,7 +576,7 @@
     if (act === 'up') { var p = sibling(el, -1); if (p) el.parentNode.insertBefore(el, p); }
     if (act === 'down') { var n = sibling(el, 1); if (n) el.parentNode.insertBefore(n, el); }
     if (act === 'dup') {
-      var c = el.cloneNode(true); c.classList.remove('hover'); if (!c.className) c.removeAttribute('class');
+      var c = el.cloneNode(true);
       el.parentNode.insertBefore(c, el.nextSibling);
       deselectImage();
     }
@@ -586,7 +595,7 @@
   window.addEventListener('resize', function () { placeBlockBar(); placeImgBar(); });
 
   // ---------------------------------------------------------------- typing
-  doc.addEventListener('input', function () { history.soon(); save(); });
+  doc.addEventListener('input', function () { history.soon(); save(); placeBlockBar(); placeImgBar(); });
   subject.addEventListener('input', save);
   doc.addEventListener('beforeinput', function (e) {
     if (e.inputType === 'historyUndo') { e.preventDefault(); history.go(-1); }

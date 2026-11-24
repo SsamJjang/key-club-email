@@ -105,9 +105,9 @@ svg { width: 18px; height: 18px; fill: currentColor; display: block; }
 .doc { outline: none; font-family: Arial, Helvetica, sans-serif; color: #102b45; }
 .doc img { cursor: pointer; }
 ::highlight(kc-sel) { background-color: #b4d3fb; color: inherit; }
-.doc img.sel { outline: 3px solid #4b8df8; outline-offset: 2px; }
 .doc a { cursor: text; }
-.doc [data-block].hover { box-shadow: inset 0 0 0 2px rgba(75,141,248,.55); }
+.obox { position: fixed; z-index: 25; pointer-events: none; box-shadow: inset 0 0 0 2px rgba(75,141,248,.55); }
+.obox.img { box-shadow: 0 0 0 3px #4b8df8; }
 .hint { text-align: center; color: #7a8794; font-size: 13px; margin-top: 18px; }
 .desk.drop .page { box-shadow: 0 0 0 3px #4b8df8; }
 
