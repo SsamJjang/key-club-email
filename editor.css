@@ -1,0 +1,134 @@
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { margin: 0; height: 100%; }
+body {
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  background: #f0f3f6;
+  color: #1f2a37;
+  display: flex;
+  flex-direction: column;
+}
+button { font: inherit; color: inherit; cursor: pointer; }
+svg { width: 18px; height: 18px; fill: currentColor; display: block; }
+
+/* ---- Top bar ---- */
+.top {
+  display: flex; align-items: center; gap: 12px;
+  padding: 8px 16px 4px;
+  background: #fff;
+}
+.mark { width: 38px; height: 38px; border-radius: 50%; background: #fff; box-shadow: 0 0 0 1px #e3e8ee; }
+.titles { flex: 1; min-width: 0; }
+.subject {
+  width: 100%; max-width: 640px;
+  font: 500 18px/1.3 inherit; font-family: inherit;
+  border: 1px solid transparent; border-radius: 4px;
+  padding: 3px 6px; margin-left: -6px;
+  color: #1f2a37; background: transparent;
+}
+.subject:hover { border-color: #dadce0; }
+.subject:focus { outline: none; border-color: #063b70; }
+.meta { display: flex; align-items: center; gap: 10px; font-size: 13px; color: #5f6b78; }
+.meta select {
+  font: inherit; color: #063b70; font-weight: 600;
+  border: 0; background: transparent; padding: 2px 0; cursor: pointer;
+}
+.saved { transition: opacity .3s; }
+.actions { display: flex; align-items: center; gap: 8px; }
+.primary {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: #063b70; color: #fff; border: 0; border-radius: 20px;
+  padding: 9px 18px; font-weight: 600; font-size: 14px;
+}
+.primary:hover { background: #0a4a87; }
+.primary svg { width: 16px; height: 16px; }
+.ghost {
+  background: #fff; border: 1px solid #dadce0; border-radius: 20px;
+  padding: 8px 14px; font-size: 14px; font-weight: 500;
+}
+.ghost:hover { background: #f4f6f8; }
+
+/* ---- Toolbar ---- */
+.toolbar {
+  display: flex; align-items: center; flex-wrap: wrap; gap: 2px;
+  margin: 4px 16px 0; padding: 4px 8px;
+  background: #edf2f7; border-radius: 22px;
+  position: sticky; top: 0; z-index: 20;
+}
+.toolbar > button, .toolbar .menu-wrap > button, .color {
+  height: 30px; min-width: 30px; padding: 0 6px;
+  display: inline-flex; align-items: center; justify-content: center; gap: 2px;
+  background: transparent; border: 0; border-radius: 4px; font-size: 14px;
+  color: #3c4650;
+}
+.toolbar > button:hover, .toolbar .menu-wrap > button:hover, .color:hover { background: #dde5ee; }
+.toolbar button.on { background: #cfe0f3; color: #063b70; }
+.toolbar .insert { font-weight: 600; color: #063b70; padding: 0 10px; }
+.sep { width: 1px; height: 20px; background: #c7d0da; margin: 0 6px; }
+.size {
+  width: 40px; height: 26px; text-align: center; font: inherit; font-size: 14px;
+  border: 1px solid #b8c2cc; border-radius: 4px; background: #fff;
+}
+.color { position: relative; flex-direction: column; gap: 0; padding: 2px 6px; cursor: pointer; }
+.color .glyph { font-weight: 700; font-size: 14px; line-height: 16px; }
+.color svg { width: 16px; height: 16px; }
+.color .swatch { width: 18px; height: 4px; border-radius: 1px; }
+.color input { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+
+.menu-wrap { position: relative; }
+.menu {
+  position: absolute; top: calc(100% + 4px); left: 0; z-index: 50;
+  min-width: 220px; padding: 6px 0;
+  background: #fff; border-radius: 6px;
+  box-shadow: 0 2px 6px rgba(0,0,0,.15), 0 8px 24px rgba(0,0,0,.12);
+}
+.actions .menu { left: auto; right: 0; }
+.menu button {
+  display: block; width: 100%; text-align: left;
+  background: none; border: 0; padding: 8px 16px; font-size: 14px;
+}
+.menu button:hover { background: #f1f4f7; }
+.menu hr { border: 0; border-top: 1px solid #e6e9ed; margin: 6px 0; }
+.menu .danger, .danger { color: #c5372c; }
+.palette { display: grid; grid-template-columns: repeat(4, 30px); gap: 6px; padding: 10px; min-width: 0; }
+.palette .chip { width: 30px; height: 30px; padding: 0; border-radius: 50%; border: 1px solid rgba(0,0,0,.12); }
+.palette .chip:hover { transform: scale(1.1); }
+.palette .lbl { grid-column: 1 / -1; font-size: 12px; color: #5f6b78; }
+
+/* ---- Desk & page ---- */
+.desk { flex: 1; overflow: auto; padding: 28px 16px 60px; position: relative; }
+.page {
+  max-width: 760px; margin: 0 auto;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(16,43,69,.12), 0 6px 24px rgba(16,43,69,.08);
+}
+.doc { outline: none; font-family: Arial, Helvetica, sans-serif; color: #102b45; }
+.doc img { cursor: pointer; }
+.doc img.sel { outline: 3px solid #4b8df8; outline-offset: 2px; }
+.doc a { cursor: text; }
+.doc [data-block].hover { box-shadow: inset 0 0 0 2px rgba(75,141,248,.55); }
+.hint { text-align: center; color: #7a8794; font-size: 13px; margin-top: 18px; }
+.desk.drop .page { box-shadow: 0 0 0 3px #4b8df8; }
+
+/* ---- Floating bars ---- */
+.blockbar, .imgbar {
+  position: fixed; z-index: 30;
+  display: flex; align-items: center; gap: 2px;
+  background: #1f2a37; color: #fff; border-radius: 6px; padding: 3px;
+  box-shadow: 0 4px 14px rgba(0,0,0,.25);
+  font-size: 13px;
+}
+.blockbar button, .imgbar button {
+  background: transparent; color: #fff; border: 0; border-radius: 4px;
+  min-width: 28px; height: 26px; padding: 0 7px; font-size: 13px;
+}
+.blockbar button:hover, .imgbar button:hover { background: rgba(255,255,255,.14); }
+.blockbar .danger, .imgbar .danger { color: #ff9a92; }
+.bname { padding: 0 8px 0 6px; color: #aab6c3; font-size: 12px; white-space: nowrap; }
+.imgbar .sep { background: rgba(255,255,255,.2); }
+
+.toast {
+  position: fixed; left: 50%; bottom: 28px; transform: translateX(-50%);
+  background: #1f2a37; color: #fff; padding: 12px 20px; border-radius: 8px;
+  font-size: 14px; box-shadow: 0 6px 20px rgba(0,0,0,.25); z-index: 100;
+}

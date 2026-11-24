@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Key Club Email Editor</title>
+<link rel="icon" href="assets/keyclub-logo.png">
+<link rel="stylesheet" href="editor.css">
+</head>
+<body>
+
+<header class="top">
+  <img class="mark" src="assets/keyclub-logo.png" alt="">
+  <div class="titles">
+    <input id="subject" class="subject" placeholder="Email subject" spellcheck="true" aria-label="Email subject">
+    <div class="meta">
+      <select id="template" aria-label="Template"></select>
+      <span id="saved" class="saved">Saved</span>
+    </div>
+  </div>
+  <div class="actions">
+    <button id="copy" class="primary" title="Copy the email, then Ctrl+V into Gmail">
+      <svg viewBox="0 0 24 24"><path d="M16 1H4a2 2 0 0 0-2 2v14h2V3h12V1zm3 4H8a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2zm0 16H8V7h11v14z"/></svg>
+      Copy for Gmail
+    </button>
+    <div class="menu-wrap">
+      <button id="exportBtn" class="ghost" aria-haspopup="true">Export ▾</button>
+      <div id="exportMenu" class="menu" hidden>
+        <button data-export="copy">Copy email for Gmail</button>
+        <button data-export="subject">Copy subject line</button>
+        <button data-export="html">Download .html file</button>
+        <hr>
+        <button data-export="reset" class="danger">Reset to original template</button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<nav class="toolbar" id="toolbar">
+  <button data-cmd="undo" title="Undo (Ctrl+Z)"><svg viewBox="0 0 24 24"><path d="M12.5 8c-2.65 0-5.05 1-6.9 2.6L2 7v9h9l-3.62-3.62A8 8 0 0 1 20.2 16l2.37-.78A10.5 10.5 0 0 0 12.5 8z"/></svg></button>
+  <button data-cmd="redo" title="Redo (Ctrl+Y)"><svg viewBox="0 0 24 24"><path d="M18.4 10.6A10.45 10.45 0 0 0 1.4 15.2l2.36.78A8 8 0 0 1 16.62 12.38L13 16h9V7l-3.6 3.6z"/></svg></button>
+  <span class="sep"></span>
+  <button data-size="-1" title="Smaller text">A−</button>
+  <input id="fontSize" class="size" type="text" value="16" aria-label="Font size" title="Font size (px)">
+  <button data-size="1" title="Bigger text">A+</button>
+  <span class="sep"></span>
+  <button data-cmd="bold" title="Bold (Ctrl+B)"><b>B</b></button>
+  <button data-cmd="italic" title="Italic (Ctrl+I)"><i>I</i></button>
+  <button data-cmd="underline" title="Underline (Ctrl+U)"><u>U</u></button>
+  <button data-cmd="strikeThrough" title="Strikethrough"><s>S</s></button>
+  <label class="color" title="Text color">
+    <span class="glyph">A</span><span class="swatch" id="foreSwatch" style="background:#063b70"></span>
+    <input type="color" id="foreColor" value="#063b70">
+  </label>
+  <label class="color" title="Highlight">
+    <svg viewBox="0 0 24 24"><path d="M6 14l3 3v5h6v-5l3-3V9H6v5zm5-12h2v3h-2zM3.5 5.88 4.88 4.5 7 6.6 5.6 8zM16.99 6.6l2.12-2.12 1.41 1.41L18.4 8z"/></svg>
+    <span class="swatch" id="backSwatch" style="background:#fff3a0"></span>
+    <input type="color" id="backColor" value="#fff3a0">
+  </label>
+  <div class="menu-wrap">
+    <button id="paletteBtn" title="Key Club colors">●▾</button>
+    <div id="palette" class="menu palette" hidden></div>
+  </div>
+  <span class="sep"></span>
+  <button data-cmd="justifyLeft" title="Align left"><svg viewBox="0 0 24 24"><path d="M3 3h18v2H3zm0 4h12v2H3zm0 4h18v2H3zm0 4h12v2H3zm0 4h18v2H3z"/></svg></button>
+  <button data-cmd="justifyCenter" title="Center"><svg viewBox="0 0 24 24"><path d="M3 3h18v2H3zm3 4h12v2H6zm-3 4h18v2H3zm3 4h12v2H6zm-3 4h18v2H3z"/></svg></button>
+  <button data-cmd="justifyRight" title="Align right"><svg viewBox="0 0 24 24"><path d="M3 3h18v2H3zm6 4h12v2H9zm-6 4h18v2H3zm6 4h12v2H9zm-6 4h18v2H3z"/></svg></button>
+  <span class="sep"></span>
+  <button data-cmd="insertUnorderedList" title="Bulleted list"><svg viewBox="0 0 24 24"><path d="M4 10.5a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zm0-6a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zm0 12a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zM7 19h14v-2H7zm0-6h14v-2H7zm0-8v2h14V5z"/></svg></button>
+  <button data-cmd="insertOrderedList" title="Numbered list"><svg viewBox="0 0 24 24"><path d="M2 17h2v.5H3v1h1v.5H2v1h3v-4H2zm1-9h1V4H2v1h1zm-1 3h1.8L2 13.1v.9h3v-1H3.2L5 10.9V10H2zm5-6v2h14V5zm0 14h14v-2H7zm0-6h14v-2H7z"/></svg></button>
+  <span class="sep"></span>
+  <button id="linkBtn" title="Link (Ctrl+K)"><svg viewBox="0 0 24 24"><path d="M3.9 12A3.1 3.1 0 0 1 7 8.9h4V7H7a5 5 0 0 0 0 10h4v-1.9H7A3.1 3.1 0 0 1 3.9 12zM8 13h8v-2H8zm9-6h-4v1.9h4a3.1 3.1 0 0 1 0 6.2h-4V17h4a5 5 0 0 0 0-10z"/></svg></button>
+  <button id="imageBtn" title="Insert image"><svg viewBox="0 0 24 24"><path d="M21 19V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2zM8.5 13.5l2.5 3 3.5-4.5 4.5 6H5l3.5-4.5z"/></svg></button>
+  <input type="file" id="imageFile" accept="image/*" multiple hidden>
+  <div class="menu-wrap">
+    <button id="insertBtn" class="insert" title="Add a section">＋ Insert ▾</button>
+    <div id="insertMenu" class="menu" hidden>
+      <button data-insert="text">Paragraph</button>
+      <button data-insert="heading">Big heading</button>
+      <button data-insert="label">Section label</button>
+      <button data-insert="tiles">Info tiles (Date / Time / Place)</button>
+      <button data-insert="list">Numbered list</button>
+      <button data-insert="details">Numbered details (label + value)</button>
+      <button data-insert="callout">Callout box</button>
+      <button data-insert="button">Button link</button>
+      <button data-insert="image">Image</button>
+      <button data-insert="divider">Divider line</button>
+      <button data-insert="spacer">Empty space</button>
+    </div>
+  </div>
+  <span class="sep"></span>
+  <button data-cmd="removeFormat" title="Clear formatting"><svg viewBox="0 0 24 24"><path d="M3.27 5 2 6.27l6.97 6.97L6.5 19h3l1.57-3.66L16.73 21 18 19.73 3.55 5.27zM6 5v.18L8.82 8h2.4l-.72 1.68 2.1 2.1L14.21 8H20V5H6z"/></svg></button>
+</nav>
+
+<main class="desk" id="desk">
+  <div class="page" id="page">
+    <div id="doc" class="doc" contenteditable="true" spellcheck="true"></div>
+  </div>
+  <p class="hint">Click anything to type. Hover a section to move, copy or delete it. Paste or drop images straight in.</p>
+</main>
+
+<!-- Section controls (hover) -->
+<div id="blockBar" class="blockbar" hidden>
+  <span id="blockName" class="bname"></span>
+  <button data-block-act="up" title="Move up">↑</button>
+  <button data-block-act="down" title="Move down">↓</button>
+  <button data-block-act="dup" title="Duplicate">⧉</button>
+  <button data-block-act="del" title="Delete" class="danger">✕</button>
+</div>
+
+<!-- Image controls -->
+<div id="imgBar" class="imgbar" hidden>
+  <button data-img="25">S</button>
+  <button data-img="50">M</button>
+  <button data-img="75">L</button>
+  <button data-img="100">Full</button>
+  <span class="sep"></span>
+  <button data-img="left" title="Align left">⇤</button>
+  <button data-img="center" title="Center">↔</button>
+  <span class="sep"></span>
+  <button data-img="replace">Replace</button>
+  <button data-img="link">Link</button>
+  <button data-img="remove" class="danger">Remove</button>
+</div>
+
+<div id="toast" class="toast" hidden></div>
+
+<script src="assets/logo-data.js"></script>
+<script src="templates.js"></script>
+<script src="editor.js"></script>
+</body>
+</html>
